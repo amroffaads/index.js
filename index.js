@@ -2,15 +2,29 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-let sharedPlayer = "لا يوجد بيانات";
+// مصفوفة لتخزين آخر الرسائل
+let chatData = {
+    username: "System",
+    message: "بدء المحادثة...",
+    time: ""
+};
 
+// استقبال الرسالة الجديدة من أي لاعب
 app.post('/update', (req, res) => {
-    sharedPlayer = req.body.username;
-    res.send("Updated");
+    if(req.body.message) {
+        chatData = {
+            username: req.body.username || "Unknown",
+            message: req.body.message,
+            time: new Date().toLocaleTimeString()
+        };
+        console.log(`[${chatData.time}] ${chatData.username}: ${chatData.message}`);
+    }
+    res.send("Sent");
 });
 
+// جلب آخر رسالة مخزنة
 app.get('/data', (req, res) => {
-    res.send(sharedPlayer);
+    res.json(chatData);
 });
 
 app.listen(3000);
