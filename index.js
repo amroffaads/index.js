@@ -2,32 +2,31 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// تخزين بيانات الدردشة والأوامر
+// تخزين بيانات الأوامر
 let chatData = {
     username: "System",
-    message: "بدء المحادثة...",
-    time: ""
+    message: "No Command",
+    time: Date.now() // نستخدم الوقت بصيغة الأرقام لضمان الدقة
 };
 
-// استقبال الرسائل والأوامر
+// استقبال الأوامر من القائد
 app.post('/update', (req, res) => {
     if(req.body.message) {
         chatData = {
             username: req.body.username || "Unknown",
             message: req.body.message,
-            time: new Date().toLocaleTimeString()
+            time: Date.now()
         };
-        console.log(`[${chatData.time}] ${chatData.username}: ${chatData.message}`);
+        console.log(`[${new Date(chatData.time).toLocaleTimeString()}] New Command: ${chatData.message}`);
     }
-    res.send("Sent");
+    res.send("Command Received");
 });
 
-// جلب آخر بيانات
+// جلب الأمر الأخير (البوتات تطلب هذا الرابط)
 app.get('/data', (req, res) => {
     res.json(chatData);
 });
 
 app.listen(3000, () => {
-    console.log('✅ الخادم يعمل على المنفذ 3000');
-    console.log('📡 جاهز لاستقبال الأوامر والرسائل');
+    console.log('✅ Bridge Server is running on port 3000');
 });
