@@ -28,9 +28,11 @@ app.post('/ping', (req, res) => {
 // جلب البيانات والقائمة
 app.get('/data', (req, res) => {
     const now = Date.now();
-    // حذف اللاعبين الذين غادروا (أكثر من 20 ثانية خمول)
+    // زيادة المدة إلى 60000 مللي ثانية (دقيقة كاملة)
     for (let bot in onlineBots) {
-        if (now - onlineBots[bot] > 20000) delete onlineBots[bot];
+        if (now - onlineBots[bot] > 60000) { 
+            delete onlineBots[bot];
+        }
     }
     res.json({ chatData, bots: Object.keys(onlineBots) });
 });
