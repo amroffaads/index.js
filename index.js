@@ -2,21 +2,31 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-let lastCommand = { username: "System", message: "none", time: Date.now() };
+// تخزين بيانات الأوامر
+let chatData = {
+    username: "System",
+    message: "No Command",
+    time: Date.now() // نستخدم الوقت بصيغة الأرقام لضمان الدقة
+};
 
-// استقبال الأمر من القائد
+// استقبال الأوامر من القائد
 app.post('/update', (req, res) => {
-    lastCommand = {
-        username: req.body.username,
-        message: req.body.message,
-        time: Date.now()
-    };
-    res.send("Command Sent");
+    if(req.body.message) {
+        chatData = {
+            username: req.body.username || "Unknown",
+            message: req.body.message,
+            time: Date.now()
+        };
+        console.log(`[${new Date(chatData.time).toLocaleTimeString()}] New Command: ${chatData.message}`);
+    }
+    res.send("Command Received");
 });
 
-// البوتات تسحب الأمر من هنا
+// جلب الأمر الأخير (البوتات تطلب هذا الرابط)
 app.get('/data', (req, res) => {
-    res.json(lastCommand);
+    res.json(chatData);
 });
 
-app.listen(3000, () => console.log('🚀 Commands Bridge Active'));
+app.listen(3000, () => {
+    console.log('✅ Bridge Server is running on port 3000');
+});
