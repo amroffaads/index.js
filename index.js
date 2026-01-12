@@ -2,14 +2,32 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// تخزين بيانات الأوامر
 let chatData = {
     username: "System",
     message: "No Command",
-    time: Date.now() // نستخدم الوقت بصيغة الأرقام لضمان الدقة
+    time: Date.now()
 };
 
-// استقبال الأوامر من القائد
+// مخزن للاعبين المتصلين
+let activePlayers = {}; 
+
+// [جديد] استقبال تحديث حالة اللاعب (Ping)
+app.post('/ping', (req, res) => {
+    const { username } = req.body;
+    if (username) {
+        activePlayers[username] = Date.now(); // حفظ اسم اللاعب ووقت اتصاله
+    }
+    res.send("Ping Received");
+});
+
+// [جديد] جلب قائمة اللاعبين المتصلين حالياً
+app.get('/players', (req, res) => {
+    const now = Date.now();
+    // تصفية اللاعبين الذين لم يرسلوا إشارة منذ أكثر من 15 ثانية (اعتبارهم غادروا)
+    const onlineList = Object.keys(activePlayers).filter(user => (now - activePlayers[user]) < 15000);
+    res.json(onlineList);
+});
+
 app.post('/update', (req, res) => {
     if(req.body.message) {
         chatData = {
@@ -17,12 +35,10 @@ app.post('/update', (req, res) => {
             message: req.body.message,
             time: Date.now()
         };
-        console.log(`[${new Date(chatData.time).toLocaleTimeString()}] New Command: ${chatData.message}`);
     }
     res.send("Command Received");
 });
 
-// جلب الأمر الأخير (البوتات تطلب هذا الرابط)
 app.get('/data', (req, res) => {
     res.json(chatData);
 });
